@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Finance Dashboard – API Reference</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --accent: #6c8ef7;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --code-bg: #141720;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: 100vh; }
+
+  nav {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 0 40px;
+  }
+
+  nav .logo {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  nav .logo h1 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .3px;
+  }
+
+  nav .logo p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  nav .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 24px 4px;
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 24px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    border-left: 3px solid transparent;
+    transition: all .15s;
+  }
+
+  nav a:hover { color: var(--text); background: var(--surface2); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--surface2); }
+
+  nav a .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: auto;
+  }
+
+  main {
+    flex: 1;
+    padding: 48px 56px;
+    max-width: 960px;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 60px; }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    margin-bottom: 28px;
+    font-size: 14px;
+  }
+
+  /* ── ENDPOINT CARD ── */
+  .endpoint {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 22px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: background .15s;
+  }
+
+  .endpoint-header:hover { background: var(--surface2); }
+  .endpoint.open .endpoint-header { border-bottom-color: var(--border); }
+
+  .method {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 5px;
+    min-width: 54px;
+    text-align: center;
+    letter-spacing: .5px;
+  }
+
+  .GET    { background: #1a3a52; color: var(--blue); }
+  .POST   { background: #1a3d2e; color: var(--green); }
+  .PUT    { background: #3a2e10; color: var(--yellow); }
+  .DELETE { background: #3a1a1a; color: var(--red); }
+
+  .endpoint-path {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .endpoint-summary {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .chevron {
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform .2s;
+  }
+
+  .endpoint.open .chevron { transform: rotate(90deg); }
+
+  .endpoint-body {
+    display: none;
+    padding: 22px;
+  }
+
+  .endpoint.open .endpoint-body { display: block; }
+
+  /* ── AUTH BADGE ── */
+  .auth-required {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #2a2518;
+    border: 1px solid #5a4a20;
+    color: var(--yellow);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .auth-public {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #152518;
+    border: 1px solid #1e4a2a;
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .roles-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #1a1f3a;
+    border: 1px solid #2e3a6a;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    margin-left: 8px;
+  }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 2px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+
+  .tab {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── TABLES ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  td code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #a5d6ff;
+  }
+
+  .required-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  .optional-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--muted);
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: #c9d1d9;
+  }
+
+  .code-block .k  { color: #ff7b72; }   /* keyword */
+  .code-block .s  { color: #a5d6ff; }   /* string key */
+  .code-block .v  { color: #79c0ff; }   /* string value */
+  .code-block .n  { color: #f0c070; }   /* number */
+  .code-block .c  { color: #8b949e; }   /* comment */
+  .code-block .p  { color: #c9d1d9; }   /* punctuation */
+  .code-block .t  { color: var(--green); }  /* true */
+  .code-block .f  { color: var(--red); }   /* false */
+
+  .response-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .status-pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+
+  .s200 { background: #1a3d2e; color: var(--green); }
+  .s201 { background: #1a3052; color: var(--blue); }
+  .s400 { background: #3a2e10; color: var(--yellow); }
+  .s401 { background: #3a2010; color: #fb923c; }
+  .s403 { background: #3a1a1a; color: var(--red); }
+  .s500 { background: #2a1a2e; color: var(--accent2); }
+
+  /* ── INTRO CARDS ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+
+  .info-card h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .info-card p, .info-card code {
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  .info-card code {
+    font-family: 'Courier New', monospace;
+    color: #a5d6ff;
+  }
+
+  .roles-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  .error-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .error-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .error-card .code { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .error-card .desc { font-size: 12px; color: var(--muted); }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  p { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 12px; }
+
+  .note {
+    background: #1a2040;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #a0b4d6;
+    margin: 12px 0 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav>
+  <div class="logo">
+    <h1>Finance Dashboard</h1>
+    <p>REST API Reference v1.0</p>
+  </div>
+
+  <div class="section-label">Overview</div>
+  <a href="#intro" class="active">Introduction</a>
+  <a href="#auth-overview">Authentication</a>
+  <a href="#roles">Roles &amp; Permissions</a>
+  <a href="#errors">Error Responses</a>
+
+  <div class="section-label" style="margin-top:12px">Auth Endpoints</div>
+  <a href="#register"><span class="badge POST" style="background:#1a3d2e;color:#34d399;font-size:10px;padding:2px 6px;border-radius:3px">POST</span> /auth/register</a>
+  <a href="#login"><span class="badge POST" style="background:#1a3d2e;color:#34d399;font-size:10px;padding:2px 6px;border-radius:3px">POST</span> /auth/login</a>
+
+  <div class="section-label" style="margin-top:12px">Record Endpoints</div>
+  <a href="#create-record"><span class="badge" style="background:#1a3d2e;color:#34d399;font-size:10px;padding:2px 6px;border-radius:3px">POST</span> /records</a>
+  <a href="#get-records"><span class="badge" style="background:#1a3a52;color:#60a5fa;font-size:10px;padding:2px 6px;border-radius:3px">GET</span> /records</a>
+  <a href="#get-by-type"><span class="badge" style="background:#1a3a52;color:#60a5fa;font-size:10px;padding:2px 6px;border-radius:3px">GET</span> /records/type</a>
+  <a href="#get-by-date"><span class="badge" style="background:#1a3a52;color:#60a5fa;font-size:10px;padding:2px 6px;border-radius:3px">GET</span> /records/date-range</a>
+  <a href="#dashboard"><span class="badge" style="background:#1a3a52;color:#60a5fa;font-size:10px;padding:2px 6px;border-radius:3px">GET</span> /records/dashboard</a>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main>
+
+<!-- ── INTRODUCTION ── -->
+<section id="intro">
+  <h2>Finance Dashboard API</h2>
+  <p class="section-desc">A secure REST API for tracking personal and organisational financial records with JWT-based authentication and role-based access control.</p>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h4>Base URL</h4>
+      <code>http://localhost:8080</code>
+    </div>
+    <div class="info-card">
+      <h4>Content Type</h4>
+      <code>application/json</code>
+    </div>
+    <div class="info-card">
+      <h4>Authentication</h4>
+      <p>Bearer JWT token in <code>Authorization</code> header</p>
+    </div>
+    <div class="info-card">
+      <h4>Token Expiry</h4>
+      <p>24 hours from time of issue</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── AUTH OVERVIEW ── -->
+<section id="auth-overview">
+  <h2>Authentication</h2>
+  <p>All endpoints under <code>/records/**</code> require a valid JWT token. Public endpoints are <code>/auth/register</code> and <code>/auth/login</code>.</p>
+
+  <div class="note">
+    After a successful login, copy the <code>token</code> value from the response and send it with every protected request as:<br><br>
+    <code>Authorization: Bearer &lt;your-token&gt;</code>
+  </div>
+</section>
+
+<!-- ── ROLES ── -->
+<section id="roles">
+  <h2>Roles &amp; Permissions</h2>
+  <p>Every user is assigned one of three roles at registration (default: <strong>VIEWER</strong>). Roles control what data a user can see and modify.</p>
+
+  <div class="roles-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Create Records</th>
+          <th>View Records</th>
+          <th>Dashboard</th>
+          <th>Scope</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>ADMIN</code></td>
+          <td>✅</td>
+          <td>✅</td>
+          <td>✅ All users</td>
+          <td>Full access across all users</td>
+        </tr>
+        <tr>
+          <td><code>ANALYST</code></td>
+          <td>✅</td>
+          <td>✅</td>
+          <td>✅ All users</td>
+          <td>Read/write, sees all data</td>
+        </tr>
+        <tr>
+          <td><code>VIEWER</code></td>
+          <td>❌</td>
+          <td>✅</td>
+          <td>✅ Own only</td>
+          <td>Read-only, own data only</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── ERRORS ── -->
+<section id="errors">
+  <h2>Error Responses</h2>
+  <p>All errors return a JSON body. Validation errors return a field-keyed map.</p>
+
+  <div class="error-grid">
+    <div class="error-card">
+      <div class="code" style="color:var(--yellow)">400</div>
+      <div style="font-weight:600;margin-bottom:2px">Bad Request</div>
+      <div class="desc">Validation failed or business rule violated</div>
+    </div>
+    <div class="error-card">
+      <div class="code" style="color:#fb923c">401</div>
+      <div style="font-weight:600;margin-bottom:2px">Unauthorized</div>
+      <div class="desc">Missing, expired, or invalid JWT token</div>
+    </div>
+    <div class="error-card">
+      <div class="code" style="color:var(--red)">403</div>
+      <div style="font-weight:600;margin-bottom:2px">Forbidden</div>
+      <div class="desc">Authenticated but role lacks permission</div>
+    </div>
+    <div class="error-card">
+      <div class="code" style="color:var(--accent2)">500</div>
+      <div style="font-weight:600;margin-bottom:2px">Server Error</div>
+      <div class="desc">Unexpected internal error</div>
+    </div>
+    <div class="error-card" style="grid-column:span 2">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Example error bodies</div>
+      <div class="code-block" style="font-size:11.5px">
+<span class="c">// Single error (400 / 401 / 403 / 500)</span>
+<span class="p">{</span> <span class="s">"error"</span><span class="p">:</span> <span class="v">"Invalid credentials"</span> <span class="p">}</span>
+
+<span class="c">// Validation error (400)</span>
+<span class="p">{</span>
+  <span class="s">"email"</span><span class="p">:</span>    <span class="v">"Please provide a valid email address"</span><span class="p">,</span>
+  <span class="s">"password"</span><span class="p">:</span> <span class="v">"Password must be between 8 and 100 characters"</span>
+<span class="p">}</span></div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- ════════════════ AUTH ENDPOINTS ════════════════ -->
+<section>
+  <h2>Auth Endpoints</h2>
+  <p class="section-desc">Public endpoints – no token required.</p>
+
+  <!-- REGISTER -->
+  <div class="endpoint open" id="register">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/register</span>
+      <span class="endpoint-summary">Create a new user account</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <span class="auth-public">🌐 Public – no token required</span>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'reg')">Request Body</div>
+        <div class="tab" onclick="switchTab(this,'reg')">Responses</div>
+      </div>
+
+      <div class="tab-panel active">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="required-dot"></span><code>email</code></td><td>string</td><td>Valid email format, required</td><td>User's email (unique across system)</td></tr>
+            <tr><td><span class="required-dot"></span><code>password</code></td><td>string</td><td>Min 8 characters, required</td><td>Will be BCrypt-hashed before storage</td></tr>
+            <tr><td><span class="required-dot"></span><code>fullName</code></td><td>string</td><td>Non-blank, required</td><td>Display name</td></tr>
+            <tr><td><span class="required-dot"></span><code>phoneNumber</code></td><td>string</td><td>10–15 digits, optional leading +</td><td>E.g. <code>+911234567890</code></td></tr>
+          </tbody>
+        </table>
+
+        <div class="response-label">Example Request</div>
+        <div class="code-block"><span class="k">POST</span> /auth/register
+Content-Type: application/json
+
+<span class="p">{</span>
+  <span class="s">"email"</span><span class="p">:</span>       <span class="v">"john@example.com"</span><span class="p">,</span>
+  <span class="s">"password"</span><span class="p">:</span>    <span class="v">"Secret@123"</span><span class="p">,</span>
+  <span class="s">"fullName"</span><span class="p">:</span>    <span class="v">"John Doe"</span><span class="p">,</span>
+  <span class="s">"phoneNumber"</span><span class="p">:</span> <span class="v">"+911234567890"</span>
+<span class="p">}</span></div>
+      </div>
+
+      <div class="tab-panel">
+        <div class="status-pill s200">200 OK</div>
+        <div class="response-label">Success Response</div>
+        <div class="code-block"><span class="p">{</span>
+  <span class="s">"userId"</span><span class="p">:</span>  <span class="n">1</span><span class="p">,</span>
+  <span class="s">"message"</span><span class="p">:</span> <span class="v">"User registered successfully"</span><span class="p">,</span>
+  <span class="s">"token"</span><span class="p">:</span>   <span class="k">null</span><span class="p">,</span>
+  <span class="s">"type"</span><span class="p">:</span>    <span class="k">null</span>
+<span class="p">}</span></div>
+
+        <div class="status-pill s400" style="margin-top:16px">400 Bad Request</div>
+        <div class="code-block"><span class="p">{</span>
+  <span class="s">"email"</span><span class="p">:</span> <span class="v">"Email already registered"</span>
+<span class="p">}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="endpoint" id="login">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/auth/login</span>
+      <span class="endpoint-summary">Authenticate and receive a JWT token</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <span class="auth-public">🌐 Public – no token required</span>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'login')">Request Body</div>
+        <div class="tab" onclick="switchTab(this,'login')">Responses</div>
+      </div>
+
+      <div class="tab-panel active">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="required-dot"></span><code>email</code></td><td>string</td><td>Valid email, required</td><td>Registered email address</td></tr>
+            <tr><td><span class="required-dot"></span><code>password</code></td><td>string</td><td>8–100 chars, required</td><td>Plain-text password (sent over HTTPS)</td></tr>
+          </tbody>
+        </table>
+
+        <div class="response-label">Example Request</div>
+        <div class="code-block"><span class="k">POST</span> /auth/login
+Content-Type: application/json
+
+<span class="p">{</span>
+  <span class="s">"email"</span><span class="p">:</span>    <span class="v">"john@example.com"</span><span class="p">,</span>
+  <span class="s">"password"</span><span class="p">:</span> <span class="v">"Secret@123"</span>
+<span class="p">}</span></div>
+      </div>
+
+      <div class="tab-panel">
+        <div class="status-pill s200">200 OK</div>
+        <div class="response-label">Success Response</div>
+        <div class="code-block"><span class="p">{</span>
+  <span class="s">"userId"</span><span class="p">:</span> <span class="n">1</span><span class="p">,</span>
+  <span class="s">"token"</span><span class="p">:</span>  <span class="v">"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzA..."</span><span class="p">,</span>
+  <span class="s">"type"</span><span class="p">:</span>   <span class="v">"Bearer"</span><span class="p">,</span>
+  <span class="s">"message"</span><span class="p">:</span> <span class="v">"Login successful"</span>
+<span class="p">}</span></div>
+
+        <div class="status-pill s400" style="margin-top:16px">400 Bad Request</div>
+        <div class="code-block"><span class="p">{</span> <span class="s">"error"</span><span class="p">:</span> <span class="v">"Invalid credentials"</span> <span class="p">}</span></div>
+
+        <div class="note" style="margin-top:12px">
+          Use the returned <code>token</code> as: <code>Authorization: Bearer &lt;token&gt;</code> in all subsequent requests.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ RECORD ENDPOINTS ════════════════ -->
+<section>
+  <h2>Financial Record Endpoints</h2>
+  <p class="section-desc">All endpoints require a valid Bearer token. Behaviour differs by role.</p>
+
+  <!-- CREATE RECORD -->
+  <div class="endpoint" id="create-record">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/records</span>
+      <span class="endpoint-summary">Create a new financial record</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <span class="auth-required">🔒 JWT Required</span>
+      <span class="roles-badge">ADMIN &amp; ANALYST only</span>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'cr')">Request Body</div>
+        <div class="tab" onclick="switchTab(this,'cr')">Responses</div>
+      </div>
+
+      <div class="tab-panel active">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Constraints</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="required-dot"></span><code>amount</code></td><td>number</td><td>Positive decimal, required</td><td>Transaction amount (always positive)</td></tr>
+            <tr><td><span class="required-dot"></span><code>type</code></td><td>string</td><td><code>INCOME</code> or <code>EXPENSE</code></td><td>Transaction direction</td></tr>
+            <tr><td><span class="required-dot"></span><code>category</code></td><td>string</td><td>Non-blank, required</td><td>Free-form label: Salary, Rent, Food…</td></tr>
+            <tr><td><span class="required-dot"></span><code>transactionDate</code></td><td>string</td><td>ISO 8601 datetime, required</td><td>Business date of the transaction</td></tr>
+            <tr><td><span class="optional-dot"></span><code>description</code></td><td>string</td><td>Optional</td><td>Free-text notes</td></tr>
+          </tbody>
+        </table>
+
+        <div class="response-label">Example Request</div>
+        <div class="code-block"><span class="k">POST</span> /records
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+<span class="p">{</span>
+  <span class="s">"amount"</span><span class="p">:</span>          <span class="n">85000.00</span><span class="p">,</span>
+  <span class="s">"type"</span><span class="p">:</span>            <span class="v">"INCOME"</span><span class="p">,</span>
+  <span class="s">"category"</span><span class="p">:</span>        <span class="v">"Salary"</span><span class="p">,</span>
+  <span class="s">"transactionDate"</span><span class="p">:</span> <span class="v">"2025-04-01T09:00:00"</span><span class="p">,</span>
+  <span class="s">"description"</span><span class="p">:</span>     <span class="v">"April salary"</span>
+<span class="p">}</span></div>
+      </div>
+
+      <div class="tab-panel">
+        <div class="status-pill s201">201 Created</div>
+        <div class="response-label">Success Response</div>
+        <div class="code-block"><span class="p">{</span>
+  <span class="s">"id"</span><span class="p">:</span>              <span class="n">1</span><span class="p">,</span>
+  <span class="s">"amount"</span><span class="p">:</span>         <span class="n">85000.00</span><span class="p">,</span>
+  <span class="s">"type"</span><span class="p">:</span>           <span class="v">"INCOME"</span><span class="p">,</span>
+  <span class="s">"category"</span><span class="p">:</span>       <span class="v">"Salary"</span><span class="p">,</span>
+  <span class="s">"transactionDate"</span><span class="p">:</span> <span class="v">"2025-04-01T09:00:00"</span><span class="p">,</span>
+  <span class="s">"description"</span><span class="p">:</span>    <span class="v">"April salary"</span><span class="p">,</span>
+  <span class="s">"createdAt"</span><span class="p">:</span>      <span class="v">"2025-04-02T11:30:00"</span><span class="p">,</span>
+  <span class="s">"userId"</span><span class="p">:</span>         <span class="n">1</span>
+<span class="p">}</span></div>
+
+        <div class="status-pill s400" style="margin-top:16px">400 Bad Request – VIEWER role</div>
+        <div class="code-block"><span class="p">{</span> <span class="s">"error"</span><span class="p">:</span> <span class="v">"You are not allowed to create records"</span> <span class="p">}</span></div>
+
+        <div class="status-pill s401" style="margin-top:12px">401 Unauthorized</div>
+        <div class="code-block"><span class="p">{</span> <span class="s">"error"</span><span class="p">:</span> <span class="v">"Unauthorized"</span> <span class="p">}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GET ALL RECORDS -->
+  <div class="endpoint" id="get-records">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/records</span>
+      <span class="endpoint-summary">List financial records</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <span class="auth-required">🔒 JWT Required</span>
+      <span class="roles-badge">All roles</span>
+
+      <p>Returns all records for the authenticated user. <strong>ADMIN</strong> and <strong>ANALYST</strong> receive records for all users.</p>
+
+      <div class="response-label" style="margin-top:16px">Example Request</div>
+      <div class="code-block"><span class="k">GET</span> /records
+Authorization: Bearer &lt;token&gt;</div>
+
+      <div class="status-pill s200" style="margin-top:16px">200 OK</div>
+      <div class="response-label">Success Response</div>
+      <div class="code-block"><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s">"id"</span><span class="p">:</span>               <span class="n">1</span><span class="p">,</span>
+    <span class="s">"amount"</span><span class="p">:</span>          <span class="n">85000.00</span><span class="p">,</span>
+    <span class="s">"type"</span><span class="p">:</span>            <span class="v">"INCOME"</span><span class="p">,</span>
+    <span class="s">"category"</span><span class="p">:</span>        <span class="v">"Salary"</span><span class="p">,</span>
+    <span class="s">"transactionDate"</span><span class="p">:</span>  <span class="v">"2025-04-01T09:00:00"</span><span class="p">,</span>
+    <span class="s">"description"</span><span class="p">:</span>     <span class="v">"April salary"</span><span class="p">,</span>
+    <span class="s">"createdAt"</span><span class="p">:</span>       <span class="v">"2025-04-02T11:30:00"</span><span class="p">,</span>
+    <span class="s">"userId"</span><span class="p">:</span>          <span class="n">1</span>
+  <span class="p">},</span>
+  <span class="c">// ... more records</span>
+<span class="p">]</span></div>
+    </div>
+  </div>
+
+  <!-- GET BY TYPE -->
+  <div class="endpoint" id="get-by-type">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/records/type?type={INCOME|EXPENSE}</span>
+      <span class="endpoint-summary">Filter records by transaction type</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <span class="auth-required">🔒 JWT Required</span>
+      <span class="roles-badge">All roles</span>
+
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Query Param</th><th>Type</th><th>Required</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td><code>type</code></td><td>string</td><td>✅ Yes</td><td><code>INCOME</code> or <code>EXPENSE</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="response-label">Example Requests</div>
+      <div class="code-block"><span class="k">GET</span> /records/type?type=INCOME
+Authorization: Bearer &lt;token&gt;
+
+<span class="k">GET</span> /records/type?type=EXPENSE
+Authorization: Bearer &lt;token&gt;</div>
+
+      <div class="status-pill s200" style="margin-top:16px">200 OK</div>
+      <div class="response-label">Returns filtered array (same shape as /records)</div>
+    </div>
+  </div>
+
+  <!-- GET BY DATE RANGE -->
+  <div class="endpoint" id="get-by-date">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/records/date-range?start=&amp;end=</span>
+      <span class="endpoint-summary">Filter records within a date range</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <span class="auth-required">🔒 JWT Required</span>
+      <span class="roles-badge">All roles</span>
+
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Query Param</th><th>Type</th><th>Required</th><th>Format</th></tr></thead>
+        <tbody>
+          <tr><td><code>start</code></td><td>string</td><td>✅ Yes</td><td>ISO 8601: <code>2025-03-01T00:00:00</code></td></tr>
+          <tr><td><code>end</code></td><td>string</td><td>✅ Yes</td><td>ISO 8601: <code>2025-03-31T23:59:59</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="note">start must not be after end — a 400 error is returned if the range is inverted.</div>
+
+      <div class="response-label">Example Request</div>
+      <div class="code-block"><span class="k">GET</span> /records/date-range?start=2025-03-01T00:00:00&amp;end=2025-03-31T23:59:59
+Authorization: Bearer &lt;token&gt;</div>
+
+      <div class="status-pill s200" style="margin-top:16px">200 OK</div>
+      <div class="response-label">Returns filtered array (same shape as /records)</div>
+
+      <div class="status-pill s400" style="margin-top:12px">400 Bad Request – inverted range</div>
+      <div class="code-block"><span class="p">{</span> <span class="s">"error"</span><span class="p">:</span> <span class="v">"start date must not be after end date"</span> <span class="p">}</span></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="endpoint" id="dashboard">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/records/dashboard</span>
+      <span class="endpoint-summary">Get income, expense and net balance summary</span>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="endpoint-body">
+      <span class="auth-required">🔒 JWT Required</span>
+      <span class="roles-badge">All roles</span>
+
+      <p>Returns aggregated financial totals and a category breakdown. <strong>ADMIN / ANALYST</strong> see totals for all users. <strong>VIEWER</strong> sees their own totals only.</p>
+
+      <div class="response-label" style="margin-top:16px">Example Request</div>
+      <div class="code-block"><span class="k">GET</span> /records/dashboard
+Authorization: Bearer &lt;token&gt;</div>
+
+      <div class="status-pill s200" style="margin-top:16px">200 OK</div>
+      <div class="response-label">Success Response</div>
+      <div class="code-block"><span class="p">{</span>
+  <span class="s">"totalIncome"</span><span class="p">:</span>  <span class="n">90000.00</span><span class="p">,</span>
+  <span class="s">"totalExpense"</span><span class="p">:</span> <span class="n">24400.00</span><span class="p">,</span>
+  <span class="s">"netBalance"</span><span class="p">:</span>   <span class="n">65600.00</span><span class="p">,</span>
+  <span class="s">"categorySummary"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s">"Salary"</span><span class="p">:</span>       <span class="n">85000.00</span><span class="p">,</span>
+    <span class="s">"Freelance"</span><span class="p">:</span>    <span class="n">5000.00</span><span class="p">,</span>
+    <span class="s">"Rent"</span><span class="p">:</span>         <span class="n">12000.00</span><span class="p">,</span>
+    <span class="s">"Food"</span><span class="p">:</span>         <span class="n">3500.00</span><span class="p">,</span>
+    <span class="s">"Utilities"</span><span class="p">:</span>    <span class="n">1200.00</span><span class="p">,</span>
+    <span class="s">"Transport"</span><span class="p">:</span>    <span class="n">2200.00</span><span class="p">,</span>
+    <span class="s">"Shopping"</span><span class="p">:</span>     <span class="n">4500.00</span><span class="p">,</span>
+    <span class="s">"Entertainment"</span><span class="p">:</span> <span class="n">1500.00</span>
+  <span class="p">}</span>
+<span class="p">}</span></div>
+
+      <table style="margin-top:16px">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>totalIncome</code></td><td>number</td><td>Sum of all INCOME records in scope</td></tr>
+          <tr><td><code>totalExpense</code></td><td>number</td><td>Sum of all EXPENSE records in scope</td></tr>
+          <tr><td><code>netBalance</code></td><td>number</td><td>totalIncome − totalExpense</td></tr>
+          <tr><td><code>categorySummary</code></td><td>object</td><td>Map of category → total amount (income + expense combined per category)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+  function toggle(header) {
+    const card = header.closest('.endpoint');
+    card.classList.toggle('open');
+  }
+
+  function switchTab(clickedTab, group) {
+    const body = clickedTab.closest('.endpoint-body');
+    const tabs = body.querySelectorAll('.tab');
+    const panels = body.querySelectorAll('.tab-panel');
+    const idx = Array.from(tabs).indexOf(clickedTab);
+    tabs.forEach(t => t.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    clickedTab.classList.add('active');
+    panels[idx].classList.add('active');
+  }
+
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }, { passive: true });
+</script>
+
+</body>
+</html>
