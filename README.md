@@ -374,9 +374,17 @@ This project demonstrates:
 
 * Clean Spring Boot architecture
 * Secure authentication (JWT)
+
 * Proper database design
 * Scalable backend structure
 
 ---
+<img width="1920" height="1080" alt="Screenshot from 2026-04-02 15-51-46" src="https://github.com/user-attachments/assets/b322e6c6-4f73-497d-8b00-8929b6eb5736" />
+---
+<img width="1920" height="1080" alt="Screenshot from 2026-04-02 15-47-53" src="https://github.com/user-attachments/assets/6683e170-ee33-42d9-90df-5c62de8492aa" />
 
+<img width="1920" height="1080" alt="Screenshot from 2026-04-02 15-47-18" src="https://github.com/user-attachments/assets/7662d5f6-b8fa-4159-8ff5-9a542084a19c" />
+
+<img width="1920" height="1080" alt="Screenshot from 2026-04-02 15-46-52" src="https://github.com/user-attachments/assets/c0f6fd02-eb86-4039-be7e-f825e4da7016" />
+<img width="1920" height="1080" alt="Screenshot from 2026-04-02 12-49-49" src="https://github.com/user-attachments/assets/4ddc8cb5-2fbe-4d08-afc9-c94f5bf7bdc6" />
 
