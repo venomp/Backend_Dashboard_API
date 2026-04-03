@@ -1,0 +1,388 @@
+================================================================
+       FINANCE DASHBOARD — REST API DOCUMENTATION v1.0
+================================================================
+
+Base URL    : http://localhost:8080
+Format      : application/json
+Auth Scheme : Bearer JWT (Authorization header)
+Token Expiry: 24 hours
+
+
+----------------------------------------------------------------
+AUTHENTICATION
+----------------------------------------------------------------
+All endpoints under /records/** require a valid JWT token.
+Send it as:
+
+    Authorization: Bearer <your-token>
+
+Public endpoints (no token needed):
+  - POST /auth/register
+  - POST /auth/login
+
+
+----------------------------------------------------------------
+ROLES & PERMISSIONS
+----------------------------------------------------------------
+Role       Create Records   View Records   Dashboard Scope
+---------  ---------------  -------------  --------------------
+ADMIN      YES              YES            All users
+ANALYST    NO               YES            All users
+VIEWER     NO               YES            Own records only
+
+Default role assigned at registration: VIEWER
+
+
+----------------------------------------------------------------
+ERROR RESPONSE FORMAT
+----------------------------------------------------------------
+Single error:
+    { "error": "message here" }
+
+Validation error (field-level):
+    {
+        "email":    "Please provide a valid email address",
+        "password": "Password must be between 8 and 100 characters"
+    }
+
+HTTP Status Codes:
+  400  Bad Request   — validation failed or business rule violated
+  401  Unauthorized  — missing, expired, or invalid JWT token
+  403  Forbidden     — role does not have permission
+  500  Server Error  — unexpected internal error
+
+
+================================================================
+AUTH ENDPOINTS
+================================================================
+
+----------------------------------------------------------------
+1. REGISTER
+----------------------------------------------------------------
+Method  : POST
+URL     : /auth/register
+Auth    : None (public)
+
+Request Body:
+  Field          Type     Required  Constraints
+  ----------     ------   --------  ---------------------------------
+  email          string   YES       Valid email format
+  password       string   YES       Minimum 8 characters
+  fullName       string   YES       Non-blank
+  phoneNumber    string   YES       10-15 digits, optional leading +
+
+Example Request:
+    POST /auth/register
+    Content-Type: application/json
+
+    {
+        "email":       "john@example.com",
+        "password":    "Secret@123",
+        "fullName":    "John Doe",
+        "phoneNumber": "+911234567890"
+    }
+
+Response — 200 OK:
+    {
+        "userId":  1,
+        "message": "User registered successfully",
+        "token":   null,
+        "type":    null
+    }
+
+Response — 400 Bad Request (email already taken):
+    { "error": "Email already registered" }
+
+Response — 400 Bad Request (validation):
+    {
+        "email":       "must be a well-formed email address",
+        "phoneNumber": "must match \"^[+]?[0-9]{10,15}$\""
+    }
+
+
+----------------------------------------------------------------
+2. LOGIN
+----------------------------------------------------------------
+Method  : POST
+URL     : /auth/login
+Auth    : None (public)
+
+Request Body:
+  Field      Type     Required  Constraints
+  --------   ------   --------  ---------------------------------
+  email      string   YES       Valid email format
+  password   string   YES       8-100 characters
+
+Example Request:
+    POST /auth/login
+    Content-Type: application/json
+
+    {
+        "email":    "john@example.com",
+        "password": "Secret@123"
+    }
+
+Response — 200 OK:
+    {
+        "userId":  1,
+        "token":   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwia...",
+        "type":    "Bearer",
+        "message": "Login successful"
+    }
+
+Response — 400 Bad Request:
+    { "error": "Invalid credentials" }
+
+Response — 400 Bad Request (inactive user):
+    { "error": "User is inactive" }
+
+NOTE: Copy the "token" value and use it in all subsequent
+      requests as: Authorization: Bearer <token>
+
+
+================================================================
+FINANCIAL RECORD ENDPOINTS
+================================================================
+
+All endpoints below require:
+    Authorization: Bearer <token>
+
+
+----------------------------------------------------------------
+3. CREATE RECORD
+----------------------------------------------------------------
+Method  : POST
+URL     : /records
+Auth    : JWT required
+Roles   : ADMIN, ANALYST  (VIEWER gets 400)
+
+Request Body:
+  Field              Type     Required  Constraints
+  ---------------    ------   --------  -------------------------
+  amount             number   YES       Positive decimal (> 0)
+  type               string   YES       "INCOME" or "EXPENSE"
+  category           string   YES       Non-blank free text
+  transactionDate    string   YES       ISO 8601 datetime
+  description        string   NO        Free text notes
+
+Example Request:
+    POST /records
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+        "amount":          85000.00,
+        "type":            "INCOME",
+        "category":        "Salary",
+        "transactionDate": "2025-04-01T09:00:00",
+        "description":     "April salary"
+    }
+
+Response — 201 Created:
+    {
+        "id":              1,
+        "amount":          85000.00,
+        "type":            "INCOME",
+        "category":        "Salary",
+        "transactionDate": "2025-04-01T09:00:00",
+        "description":     "April salary",
+        "createdAt":       "2025-04-02T11:30:00",
+        "userId":          1
+    }
+
+Response — 400 Bad Request (VIEWER role):
+    { "error": "You are not allowed to create records" }
+
+Response — 400 Bad Request (validation):
+    {
+        "amount":          "must be greater than 0",
+        "type":            "must not be null",
+        "category":        "must not be blank",
+        "transactionDate": "must not be null"
+    }
+
+Response — 401 Unauthorized:
+    { "error": "Unauthorized" }
+
+
+----------------------------------------------------------------
+4. GET ALL RECORDS
+----------------------------------------------------------------
+Method  : GET
+URL     : /records
+Auth    : JWT required
+Roles   : All roles
+
+Behaviour by role:
+  ADMIN / ANALYST  — returns all records across all users
+  VIEWER           — returns only own records
+
+Example Request:
+    GET /records
+    Authorization: Bearer <token>
+
+Response — 200 OK:
+    [
+        {
+            "id":              1,
+            "amount":          85000.00,
+            "type":            "INCOME",
+            "category":        "Salary",
+            "transactionDate": "2025-04-01T09:00:00",
+            "description":     "April salary",
+            "createdAt":       "2025-04-02T11:30:00",
+            "userId":          1
+        },
+        {
+            "id":              2,
+            "amount":          12000.00,
+            "type":            "EXPENSE",
+            "category":        "Rent",
+            "transactionDate": "2025-04-02T10:00:00",
+            "description":     "Monthly rent",
+            "createdAt":       "2025-04-02T11:35:00",
+            "userId":          1
+        }
+    ]
+
+Response — 200 OK (empty):
+    []
+
+Response — 401 Unauthorized:
+    { "error": "Unauthorized" }
+
+
+----------------------------------------------------------------
+5. GET RECORDS BY TYPE
+----------------------------------------------------------------
+Method  : GET
+URL     : /records/type
+Auth    : JWT required
+Roles   : All roles
+
+Query Parameters:
+  Param   Type     Required  Values
+  ------  ------   --------  ---------------------
+  type    string   YES       "INCOME" or "EXPENSE"
+
+Example Requests:
+    GET /records/type?type=INCOME
+    Authorization: Bearer <token>
+
+    GET /records/type?type=EXPENSE
+    Authorization: Bearer <token>
+
+Behaviour by role:
+  ADMIN / ANALYST  — filters across all users
+  VIEWER           — filters own records only
+
+Response — 200 OK:
+    [ ...array of matching records, same shape as GET /records... ]
+
+Response — 400 Bad Request (invalid type value):
+    { "error": "..." }
+
+Response — 401 Unauthorized:
+    { "error": "Unauthorized" }
+
+
+----------------------------------------------------------------
+6. GET RECORDS BY DATE RANGE
+----------------------------------------------------------------
+Method  : GET
+URL     : /records/date-range
+Auth    : JWT required
+Roles   : All roles
+
+Query Parameters:
+  Param   Type     Required  Format
+  ------  ------   --------  ------------------------------
+  start   string   YES       ISO 8601 e.g. 2025-03-01T00:00:00
+  end     string   YES       ISO 8601 e.g. 2025-03-31T23:59:59
+
+NOTE: start must not be after end. A 400 error is returned
+      if the range is inverted.
+
+Behaviour by role:
+  ADMIN / ANALYST  — searches across all users
+  VIEWER           — searches own records only
+
+Example Request:
+    GET /records/date-range?start=2025-03-01T00:00:00&end=2025-03-31T23:59:59
+    Authorization: Bearer <token>
+
+Response — 200 OK:
+    [ ...array of matching records, same shape as GET /records... ]
+
+Response — 400 Bad Request (inverted range):
+    { "error": "start date must not be after end date" }
+
+Response — 401 Unauthorized:
+    { "error": "Unauthorized" }
+
+
+----------------------------------------------------------------
+7. GET DASHBOARD SUMMARY
+----------------------------------------------------------------
+Method  : GET
+URL     : /records/dashboard
+Auth    : JWT required
+Roles   : All roles
+
+Returns aggregated income, expense, net balance, and a
+per-category breakdown.
+
+Behaviour by role:
+  ADMIN / ANALYST  — aggregates across all users
+  VIEWER           — aggregates own records only
+
+Example Request:
+    GET /records/dashboard
+    Authorization: Bearer <token>
+
+Response — 200 OK:
+    {
+        "totalIncome":  90000.00,
+        "totalExpense": 24400.00,
+        "netBalance":   65600.00,
+        "categorySummary": {
+            "Salary":        85000.00,
+            "Freelance":      5000.00,
+            "Rent":          12000.00,
+            "Food":           3500.00,
+            "Utilities":      1200.00,
+            "Transport":      2200.00,
+            "Shopping":       4500.00,
+            "Entertainment":  1500.00
+        }
+    }
+
+Response Fields:
+  Field             Type    Description
+  ---------------   ------  -------------------------------------------
+  totalIncome       number  Sum of all INCOME records in scope
+  totalExpense      number  Sum of all EXPENSE records in scope
+  netBalance        number  totalIncome minus totalExpense
+  categorySummary   object  Map of category label to total amount
+
+Response — 401 Unauthorized:
+    { "error": "Unauthorized" }
+
+
+================================================================
+QUICK REFERENCE
+================================================================
+
+  Method  Endpoint                  Auth    Roles
+  ------  ------------------------  ------  --------------------
+  POST    /auth/register            None    —
+  POST    /auth/login               None    —
+  POST    /records                  JWT     ADMIN, ANALYST
+  GET     /records                  JWT     ALL
+  GET     /records/type?type=       JWT     ALL
+  GET     /records/date-range       JWT     ALL
+  GET     /records/dashboard        JWT     ALL
+
+================================================================
+END OF DOCUMENT
+================================================================
